@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolsa de Trabajo - Aeropuerto Internacional de Tijuana</title>
+  <!-- Cabeceras para evitar caché y forzar actualización inmediata al escanear QR -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="pb-24 text-slate-800">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">
+          ✈️
+        </div>
+        <div>
+          <h1 class="font-extrabold text-slate-900 text-base leading-tight">Bolsa de Trabajo Aeropuerto</h1>
+          <p class="text-xs text-emerald-600 font-bold">● Vacantes Disponibles • Tijuana</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="abrirModalQR()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3.5 py-2 rounded-xl font-bold flex items-center gap-1.5 transition">
+          <span>📱</span> QR / Compartir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DE VACANTES -->
+  <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6" id="vacantesContainer">
+    <!-- Renderizado dinámico -->
+  </main>
+
+  <!-- BOTÓN DISCRETO DE ADMINISTRADOR -->
+  <div class="fixed bottom-4 right-4 z-40">
+    <button onclick="solicitarAccesoAdmin()" class="bg-slate-900/90 hover:bg-slate-900 text-slate-300 text-xs px-4 py-2.5 rounded-full shadow-2xl border border-slate-700 flex items-center gap-2 backdrop-blur-md transition-all">
+      <span>🔒</span> Administrar
+    </button>
+  </div>
+
+  <!-- MODAL DE PIN ADMIN -->
+  <div id="modalPin" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl text-center">
+      <h3 class="font-extrabold text-slate-900 text-base mb-1">Modo Administrador</h3>
+      <p class="text-xs text-slate-500 mb-4">Ingresa tu PIN para editar vacantes o subir nuevos flyers</p>
+      <input type="password" id="inputPin" placeholder="••••" class="w-full text-center text-2xl font-bold tracking-widest py-2.5 border-2 border-slate-200 rounded-xl mb-4 focus:border-emerald-600 focus:outline-none">
+      <div class="flex gap-2">
+        <button onclick="cerrarPin()" class="w-1/2 py-2 text-slate-500 font-semibold text-xs">Cancelar</button>
+        <button onclick="validarPin()" class="w-1/2 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL "VER MÁS INFORMACIÓN" -->
+  <div id="modalDetalle" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+        <h3 class="font-extrabold text-slate-900 text-sm" id="detalleTitulo">Información Completa</h3>
+        <button onclick="cerrarModalDetalle()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold hover:bg-slate-200 text-sm">✕</button>
+      </div>
+      <div class="p-5 space-y-4 text-xs text-slate-700 leading-relaxed" id="detalleCuerpo">
+        <!-- Contenido detalle -->
+      </div>
+      <div class="p-4 border-t border-slate-100 bg-slate-50 sticky bottom-0">
+        <a id="btnWADetalle" href="#" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs">
+          <span>💬</span> Contactar por WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CÓDIGO QR -->
+  <div id="modalQR" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+      <h3 class="font-extrabold text-slate-900 text-base mb-1">Código QR para Recepción</h3>
+      <p class="text-xs text-slate-500 mb-4">Los visitantes pueden escanear este código con su celular.</p>
+      <div class="flex justify-center my-4 bg-slate-50 p-4 rounded-xl border border-slate-200" id="qrcode"></div>
+      <p class="text-[11px] text-slate-400 mb-4 break-all" id="textUrl"></p>
+      <button onclick="cerrarModalQR()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- PANEL ADMIN SUPERIOR -->
+  <div id="panelAdminBar" class="bg-slate-900 text-white py-2 px-4 sticky top-[65px] z-20 hidden shadow-md">
+    <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <span class="text-xs font-bold text-emerald-400">⚡ Modo Editor Activado</span>
+      <div class="flex gap-2">
+        <button onclick="restaurarDeFabrica()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1 rounded-lg font-bold">🔄 Restaurar de Fábrica</button>
+        <button onclick="abrirModalFormulario()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1 rounded-lg font-bold">+ Agregar Vacante</button>
+        <button onclick="cerrarAdmin()" class="bg-slate-700 text-slate-200 text-xs px-3 py-1 rounded-lg font-bold">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO / SUBIR FLYER Y DATOS -->
+  <div id="modalFormulario" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+      <h3 class="font-extrabold text-slate-900 text-base mb-4" id="tituloFormModal">Registrar o Editar Vacante</h3>
+      
+      <form id="formVacante" onsubmit="guardarVacante(event)" class="space-y-3.5">
+        <input type="hidden" id="vacanteId">
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Puesto</label>
+          <input type="text" id="inputPuesto" required placeholder="Ej. ALMACENISTA" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Requisitos Principales (Texto visible al lado)</label>
+          <textarea id="inputRequisitos" rows="3" required placeholder="• Experiencia mínima de 6 meses&#10;• Preparatoria trunca o terminada" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Horario / Turnos</label>
+          <textarea id="inputHorario" rows="2" placeholder="• Jornada rotativa de 12x36 horas&#10;• Turnos diurnos y nocturnos" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Información Completa / Prestaciones (Para "Ver más información")</label>
+          <textarea id="inputInfoExtra" rows="5" placeholder="Sueldo base $14,310.00, Vales de despensa, Comedor subsidiado..." class="w-full p-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-600 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Subir Imagen del Flyer (Archivo desde tu compu/celular)</label>
+          <input type="file" id="inputImagenFile" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+          <p class="text-[10px] text-slate-400 mt-1">Si no seleccionas archivo, se mantendrá la imagen actual.</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="cerrarModalFormulario()" class="px-4 py-2 text-xs font-bold text-slate-500">Cancelar</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-emerald-700">Guardar Vacante</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCRIPT DE FUNCIONAMIENTO CON INDEXEDDB Y RESET DE FÁBRICA -->
+  <script>
+    const MI_WHATSAPP = "526632028035";
+    const PIN_SECRET = "2026**";
+    let esAdmin = false;
+    let db = null;
+
+    // DATOS DE FÁBRICA EXACTOS
+    const vacantesBase = [
+      {
+        id: "1",
+        puesto: "ALMACENISTA",
+        disponible: true,
+        requisitos: ["Experiencia mínima de 6 meses en almacén e inventarios", "Manejo de mercancía y control de entradas/salidas"],
+        horario: ["Turnos de 8 horas rotativos", "08:00 - 17:30 / 13:00 - 22:30 / 21:00 - 05:30"],
+        infoExtra: "¡Buscamos talento para nuestro equipo de Logística y Almacén en AeroComercializadora! ✈️📦\n\n💰 SUELDO BASE: $14,882.00 M.N. mensuales\n\n✨ TUS BENEFICIOS:\n• Prestaciones de Ley desde el primer día 📜\n• Bono de contratación y permanencia 💵\n• Comedor subsidiado 🍽️\n• Estacionamiento gratuito para colaboradores 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora",
+        imagen: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "2",
+        puesto: "CAJERO(A)",
+        disponible: true,
+        requisitos: ["Experiencia mínima de 6 meses en manejo de caja y cobro", "Preparatoria trunca o terminada"],
+        horario: ["Jornada rotativa de 12x36 horas", "Trabajas 1 día sí y 1 día no", "Turnos: 7:00 a.m. a 7:00 p.m. o de 7:00 p.m. a 7:00 a.m."],
+        infoExtra: "¡Únete al equipo en nuestra tienda AeroMarket de AeroComercializadora! ✈️🛒\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales + Vales y Bonos\n\n✨ TUS BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Bono de bienvenida y permanencia 🎁\n• Bono por productividad 📈\n• Servicio de comedor 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora",
+        imagen: "https://images.unsplash.com/photo-1556742049-0a670c480728?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "3",
+        puesto: "MESERO VIP",
+        disponible: true,
+        requisitos: ["Experiencia en atención a comensales o restaurantes", "Excelente actitud de servicio y presentación"],
+        horario: ["Turnos rotativos (Mañana 6:30am - 4:00pm / Intermedio 2:00pm - 11:30pm / Noche 10:30pm - 7:00am)", "2 Días de descanso a la semana"],
+        infoExtra: "¡Sé parte de nuestro exclusivo VIP Lounge en AeroComercializadora! ✈️✨\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales + PROPINAS DIARIAS 💵\n\n✨ TUS BENEFICIOS:\n• Prestaciones de Ley 📜\n• Propinas diarias 💵✨\n• 2 Días de descanso a la semana 🗓️\n• Comedor subsidiado 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora",
+        imagen: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "4",
+        puesto: "OPERADOR MULTIMODAL DE ESTACIONAMIENTO",
+        disponible: true,
+        requisitos: ["Atención a usuarios en estacionamiento", "Disponibilidad para rolar turnos"],
+        horario: ["Turnos de 12 x 36 hrs (Rotativo diurno/nocturno)", "Trabajas 1 día sí y 1 día no"],
+        infoExtra: "¡Forma parte del equipo de Operaciones de Puerta Cero Parking en el Aeropuerto! ✈️🚘\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales\n\n✨ TUS BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Bono nocturno 🌙\n• Comedor subsidiado 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: Puerta Cero Parking",
+        imagen: "https://images.unsplash.com/photo-1506521781263-d8422e82f27a?auto=format&fit=crop&w=800&q=80"
+      },
+      {
+        id: "5",
+        puesto: "CHOFER SHUTTLE ESTACIONAMIENTO",
+        disponible: true,
+        requisitos: ["Licencia de conducir vigente", "Experiencia conduciendo unidades de traslado o pasajeros"],
+        horario: ["Turnos de 12 x 36 hrs (Rotativo)", "Trabajas 1 día sí y 1 día no"],
+        infoExtra: "¡Estamos contratando Chofer de Shuttle en Puerta Cero Parking! ✈️🚐\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales\n\n✨ TUS BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Servicio de comedor 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: Puerta Cero Parking",
+        imagen: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=800&q=80"
+      }
+    ];
+
+    // INICIALIZACIÓN DE BASE DE DATOS Y LIMPIEZA DE CACHÉ LOCAL
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        // Limpieza preventiva de bases de datos obsoletas para forzar actualización en móviles
+        if (window.indexedDB) {
+          try {
+            indexedDB.deleteDatabase("JobsPortalDB");
+          } catch(e) {}
+        }
+
+        const request = indexedDB.open("BolsaTrabajoTIA_DB", 1);
+        request.onupgradeneeded = (e) => {
+          db = e.target.result;
+          if (!db.objectStoreNames.contains("vacantes")) {
+            db.createObjectStore("vacantes", { keyPath: "id" });
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(db);
+        };
+        request.onerror = (e) => reject(e);
+      });
+    }
+
+    async function obtenerVacantesDB() {
+      if (!db) await initDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction("vacantes", "readonly");
+        const store = tx.objectStore("vacantes");
+        const req = store.getAll();
+        req.onsuccess = () => {
+          if (req.result && req.result.length > 0) {
+            resolve(req.result);
+          } else {
+            guardarVacantesBatch(vacantesBase).then(() => resolve(vacantesBase));
+          }
+        };
+      });
+    }
+
+    async function guardarVacantesBatch(lista) {
+      if (!db) await initDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction("vacantes", "readwrite");
+        const store = tx.objectStore("vacantes");
+        store.clear();
+        lista.forEach(v => store.put(v));
+        tx.oncomplete = () => resolve(true);
+      });
+    }
+
+    async function guardarUnaVacanteDB(vacante) {
+      if (!db) await initDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction("vacantes", "readwrite");
+        const store = tx.objectStore("vacantes");
+        store.put(vacante);
+        tx.oncomplete = () => resolve(true);
+      });
+    }
+
+    async function eliminarVacanteDB(id) {
+      if (!db) await initDB();
+      return new Promise((resolve) => {
+        const tx = db.transaction("vacantes", "readwrite");
+        const store = tx.objectStore("vacantes");
+        store.delete(id);
+        tx.oncomplete = () => resolve(true);
+      });
+    }
+
+    async function renderizar() {
+      const container = document.getElementById("vacantesContainer");
+      const vacantes = await obtenerVacantesDB();
+      container.innerHTML = "";
+
+      vacantes.forEach(item => {
+        if (!item.disponible && !esAdmin) return;
+
+        const mensajeWA = encodeURIComponent(`Hola buen día me interesa la vacante ${item.puesto}`);
+        const linkWA = `https://wa.me/${MI_WHATSAPP}?text=${mensajeWA}`;
+
+        const card = document.createElement("div");
+        card.className = `bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all ${!item.disponible ? 'opacity-50 border-red-200 bg-red-50/20' : ''}`;
+
+        card.innerHTML = `
+          <div class="p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            <div class="md:col-span-5 bg-slate-100 rounded-xl overflow-hidden border border-slate-200 flex items-center justify-center max-h-[380px]">
+              <img src="${item.imagen}" alt="${item.puesto}" class="w-full h-auto object-cover">
+            </div>
+
+            <div class="md:col-span-7 flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex justify-between items-start mb-2">
+                  <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">${item.puesto}</h2>
+                  <div>
+                    ${item.disponible 
+                      ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Disponible</span>`
+                      : `<span class="bg-red-100 text-red-800 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">Ocupada</span>`
+                    }
+                  </div>
+                </div>
+
+                <div class="space-y-3">
+                  <div>
+                    <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">Requisitos</h3>
+                    <ul class="space-y-1 text-xs text-slate-700 font-medium">
+                      ${item.requisitos.map(r => `<li>• ${r}</li>`).join('')}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-1">Horario</h3>
+                    <ul class="space-y-1 text-xs text-slate-600 font-medium">
+                      ${item.horario.map(h => `<li>• ${h}</li>`).join('')}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2.5">
+                <button onclick="verDetalle('${item.id}')" class="w-full sm:w-1/2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold rounded-xl text-xs transition flex items-center justify-center gap-1.5">
+                  <span>📄</span> Ver más información
+                </button>
+                <a href="${linkWA}" target="_blank" class="w-full sm:w-1/2 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold rounded-xl text-xs shadow-md shadow-emerald-500/25 transition flex items-center justify-center gap-1.5">
+                  <span>💬</span> Contactar por WhatsApp
+                </a>
+              </div>
+
+              ${esAdmin ? `
+                <div class="pt-2 border-t border-slate-200 flex gap-2">
+                  <button onclick="editarVacante('${item.id}')" class="w-1/3 py-1.5 bg-blue-100 text-blue-800 text-xs font-bold rounded-lg">✏️ Editar</button>
+                  <button onclick="cambiarEstatus('${item.id}')" class="w-1/3 py-1.5 ${item.disponible ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} text-xs font-bold rounded-lg">${item.disponible ? 'Marcar Ocupada' : 'Marcar Disponible'}</button>
+                  <button onclick="eliminarVacante('${item.id}')" class="w-1/3 py-1.5 bg-red-100 text-red-700 text-xs font-bold rounded-lg">Eliminar</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function verDetalle(id) {
+      const vacantes = await obtenerVacantesDB();
+      const vacante = vacantes.find(v => v.id === id);
+      if (!vacante) return;
+
+      document.getElementById("detalleTitulo").innerText = `Detalles de la vacante: ${vacante.puesto}`;
+      const mensajeWA = encodeURIComponent(`Hola buen día me interesa la vacante ${vacante.puesto}`);
+      document.getElementById("btnWADetalle").href = `https://wa.me/${MI_WHATSAPP}?text=${mensajeWA}`;
+
+      document.getElementById("detalleCuerpo").innerHTML = `
+        <div class="space-y-3">
+          <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+            <p class="font-bold text-emerald-900 text-xs">📌 Ubicación: Aeropuerto Internacional de Tijuana</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 text-xs mb-1 uppercase tracking-wider">Información Completa</h4>
+            <p class="text-slate-600 leading-relaxed whitespace-pre-line">${vacante.infoExtra}</p>
+          </div>
+        </div>
+      `;
+      document.getElementById("modalDetalle").classList.remove("hidden");
+    }
+
+    function cerrarModalDetalle() {
+      document.getElementById("modalDetalle").classList.add("hidden");
+    }
+
+    function solicitarAccesoAdmin() {
+      document.getElementById("modalPin").classList.remove("hidden");
+    }
+
+    function cerrarPin() {
+      document.getElementById("modalPin").classList.add("hidden");
+      document.getElementById("inputPin").value = "";
+    }
+
+    function validarPin() {
+      const pin = document.getElementById("inputPin").value;
+      if (pin === PIN_SECRET) {
+        esAdmin = true;
+        cerrarPin();
+        document.getElementById("panelAdminBar").classList.remove("hidden");
+        renderizar();
+      } else {
+        alert("PIN incorrecto. Intenta de nuevo.");
+      }
+    }
+
+    function cerrarAdmin() {
+      esAdmin = false;
+      document.getElementById("panelAdminBar").classList.add("hidden");
+      renderizar();
+    }
+
+    async function restaurarDeFabrica() {
+      if (confirm("¿Estás seguro de restaurar todas las vacantes originales de fábrica? Se sobrescribirán tus ediciones actuales.")) {
+        await guardarVacantesBatch(vacantesBase);
+        renderizar();
+      }
+    }
+
+    async function cambiarEstatus(id) {
+      const vacantes = await obtenerVacantesDB();
+      const v = vacantes.find(item => item.id === id);
+      if (v) {
+        v.disponible = !v.disponible;
+        await guardarUnaVacanteDB(v);
+        renderizar();
+      }
+    }
+
+    async function eliminarVacante(id) {
+      if (confirm("¿Estás segura de eliminar esta vacante?")) {
+        await eliminarVacanteDB(id);
+        renderizar();
+      }
+    }
+
+    function abrirModalFormulario() {
+      document.getElementById("formVacante").reset();
+      document.getElementById("vacanteId").value = "";
+      document.getElementById("tituloFormModal").innerText = "Registrar Nueva Vacante";
+      document.getElementById("modalFormulario").classList.remove("hidden");
+    }
+
+    async function editarVacante(id) {
+      const vacantes = await obtenerVacantesDB();
+      const v = vacantes.find(item => item.id === id);
+      if (!v) return;
+
+      document.getElementById("vacanteId").value = v.id;
+      document.getElementById("inputPuesto").value = v.puesto;
+      document.getElementById("inputRequisitos").value = v.requisitos.join('\n');
+      document.getElementById("inputHorario").value = v.horario.join('\n');
+      document.getElementById("inputInfoExtra").value = v.infoExtra;
+      document.getElementById("tituloFormModal").innerText = `Editar Vacante: ${v.puesto}`;
+      document.getElementById("modalFormulario").classList.remove("hidden");
+    }
+
+    function cerrarModalFormulario() {
+      document.getElementById("modalFormulario").classList.add("hidden");
+    }
+
+    async function guardarVacante(e) {
+      e.preventDefault();
+      const id = document.getElementById("vacanteId").value || Date.now().toString();
+      const puesto = document.getElementById("inputPuesto").value;
+      const requisitos = document.getElementById("inputRequisitos").value.split('\n').map(r => r.trim()).filter(r => r);
+      const horario = document.getElementById("inputHorario").value.split('\n').map(h => h.trim()).filter(h => h);
+      const infoExtra = document.getElementById("inputInfoExtra").value;
+      const fileInput = document.getElementById("inputImagenFile");
+
+      const vacantes = await obtenerVacantesDB();
+      const vacanteExistente = vacantes.find(v => v.id === id);
+
+      const procesarGuardado = async (imagenUrl) => {
+        const objetoVacante = {
+          id,
+          puesto,
+          disponible: true,
+          requisitos,
+          horario,
+          infoExtra,
+          imagen: imagenUrl || (vacanteExistente ? vacanteExistente.imagen : "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80")
+        };
+
+        await guardarUnaVacanteDB(objetoVacante);
+        cerrarModalFormulario();
+        renderizar();
+      };
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const img = new Image();
+          img.src = e.target.result;
+          img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            let width = img.width;
+            let height = img.height;
+            const maxDim = 1200;
+            if (width > height && width > maxDim) {
+              height *= maxDim / width;
+              width = maxDim;
+            } else if (height > maxDim) {
+              width *= maxDim / height;
+              height = maxDim;
+            }
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+            procesarGuardado(canvas.toDataURL('image/jpeg', 0.85));
+          };
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        await procesarGuardado(null);
+      }
+    }
+
+    function abrirModalQR() {
+      const url = window.location.href;
+      document.getElementById("textUrl").innerText = url;
+      const qrcodeDiv = document.getElementById("qrcode");
+      qrcodeDiv.innerHTML = "";
+      new QRCode(qrcodeDiv, { text: url, width: 160, height: 160 });
+      document.getElementById("modalQR").classList.remove("hidden");
+    }
+
+    function cerrarModalQR() {
+      document.getElementById("modalQR").classList.add("hidden");
+    }
+
+    // Inicializar
+    initDB().then(() => renderizar());
+  </script>
+</body>
+</html>
