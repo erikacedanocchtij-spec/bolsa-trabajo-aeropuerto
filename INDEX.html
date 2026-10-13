@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bolsa de Trabajo - Aeropuerto Internacional de Tijuana</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="pb-28 text-slate-800">
+
+  <!-- ENCABEZADO -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 py-3.5 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow">
+          ✈️
+        </div>
+        <div>
+          <h1 class="font-extrabold text-slate-900 text-base leading-tight">Bolsa de Trabajo Aeropuerto</h1>
+          <p class="text-xs text-emerald-600 font-bold">● Vacantes Disponibles • Tijuana</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DE VACANTES -->
+  <main class="max-w-4xl mx-auto px-4 mt-6 space-y-6" id="vacantesContainer">
+    <!-- Renderizado dinámico -->
+  </main>
+
+  <!-- BOTÓN DE ADMINISTRADOR -->
+  <div class="fixed bottom-4 right-4 z-40">
+    <button onclick="solicitarAccesoAdmin()" class="bg-slate-900 hover:bg-slate-950 text-slate-200 text-xs px-4 py-2.5 rounded-full shadow-xl border border-slate-700 flex items-center gap-2 transition-all">
+      <span>🔒</span> Administrar
+    </button>
+  </div>
+
+  <!-- MODAL DE PIN ADMIN -->
+  <div id="modalPin" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-xs w-full shadow-2xl text-center">
+      <h3 class="font-extrabold text-slate-900 text-base mb-1">Modo Administrador</h3>
+      <p class="text-xs text-slate-500 mb-4">Ingresa tu PIN</p>
+      <input type="password" id="inputPin" placeholder="••••" class="w-full text-center text-2xl font-bold tracking-widest py-2.5 border-2 border-slate-200 rounded-xl mb-4 focus:border-emerald-600 focus:outline-none">
+      <div class="flex gap-2">
+        <button onclick="cerrarPin()" class="w-1/2 py-2 text-slate-500 font-semibold text-xs">Cancelar</button>
+        <button onclick="validarPin()" class="w-1/2 py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs shadow-md hover:bg-emerald-700">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DETALLE -->
+  <div id="modalDetalle" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+      <div class="p-4 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white">
+        <h3 class="font-extrabold text-slate-900 text-sm" id="detalleTitulo">Información Completa</h3>
+        <button onclick="cerrarModalDetalle()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold hover:bg-slate-200">✕</button>
+      </div>
+      <div class="p-5 space-y-4 text-xs text-slate-700 leading-relaxed" id="detalleCuerpo"></div>
+      <div class="p-4 border-t border-slate-100 bg-slate-50">
+        <a id="btnWADetalle" href="#" target="_blank" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-3 rounded-xl shadow flex items-center justify-center gap-2 text-xs">
+          <span>💬</span> Contactar por WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL ADMIN SUPERIOR -->
+  <div id="panelAdminBar" class="bg-slate-900 text-white py-2 px-4 sticky top-[65px] z-20 hidden shadow-md">
+    <div class="max-w-4xl mx-auto flex flex-wrap justify-between items-center gap-2">
+      <span class="text-xs font-bold text-emerald-400">⚡ Modo Editor Activado</span>
+      <div class="flex gap-2 items-center">
+        <button onclick="descargarActualizacion()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold shadow">💾 Guardar Cambios (Descargar para GitHub)</button>
+        <button onclick="abrirModalFormulario()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold">+ Agregar Vacante</button>
+        <button onclick="restaurarOriginales()" class="bg-amber-600 hover:bg-amber-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold">🔄 Restaurar</button>
+        <button onclick="cerrarAdmin()" class="bg-slate-700 text-slate-200 text-xs px-3 py-1.5 rounded-lg font-bold">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FORMULARIO -->
+  <div id="modalFormulario" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl overflow-y-auto max-h-[90vh]">
+      <h3 class="font-extrabold text-slate-900 text-base mb-4" id="tituloFormModal">Registrar o Editar Vacante</h3>
+      <div class="space-y-3.5">
+        <input type="hidden" id="vacanteId">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Puesto</label>
+          <input type="text" id="inputPuesto" required class="w-full p-2.5 border border-slate-200 rounded-xl text-xs">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Requisitos (uno por línea)</label>
+          <textarea id="inputRequisitos" rows="3" required class="w-full p-2.5 border border-slate-200 rounded-xl text-xs"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Horario</label>
+          <textarea id="inputHorario" rows="2" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Información Completa / Prestaciones</label>
+          <textarea id="inputInfoExtra" rows="4" class="w-full p-2.5 border border-slate-200 rounded-xl text-xs"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t">
+          <button type="button" onclick="cerrarModalFormulario()" class="px-4 py-2 text-xs font-bold text-slate-500">Cancelar</button>
+          <button type="button" onclick="guardarVacanteDirecto()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MI_WHATSAPP = "526632028035";
+    const PIN_SECRET = "2026**";
+    let esAdmin = false;
+
+    const vacantesBase = [
+      { 
+        id: "1", 
+        puesto: "ALMACENISTA", 
+        disponible: true, 
+        requisitos: ["Experiencia mínima de 6 meses en almacén e inventarios", "Manejo de mercancía y control de entradas/salidas"], 
+        horario: ["Turnos de 8 horas rotativos", "08:00 - 17:30 / 13:00 - 22:30 / 21:00 - 05:30"], 
+        infoExtra: "¡Buscamos talento para nuestro equipo de Logística y Almacén en AeroComercializadora! ✈️📦\n\n💰 SUELDO BASE: $14,882.00 M.N. mensuales\n\n✨ PRESTACIONES Y BENEFICIOS:\n• Prestaciones de Ley desde el primer día 📜\n• Bono de contratación y permanencia 💵\n• Comedor subsidiado 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora" 
+      },
+      { 
+        id: "2", 
+        puesto: "CAJERO(A)", 
+        disponible: true, 
+        requisitos: ["Experiencia mínima de 6 meses en manejo de caja y cobro", "Preparatoria trunca o terminada"], 
+        horario: ["Jornada rotativa de 12x36 horas (Trabajas 1 día sí, un día no)", "Turnos: 7:00 a.m. a 7:00 p.m. o de 7:00 p.m. a 7:00 a.m."], 
+        infoExtra: "¡Únete al equipo en nuestra tienda AeroMarket de AeroComercializadora! ✈️🛒\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales\n\n✨ PRESTACIONES Y BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Bono de bienvenida y permanencia 🎁\n• Bono por productividad 📈\n• Servicio de comedor 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora" 
+      },
+      { 
+        id: "3", 
+        puesto: "MESERO VIP", 
+        disponible: true, 
+        requisitos: ["Experiencia en atención a comensales o restaurantes", "Excelente actitud de servicio y presentación"], 
+        horario: ["Día: 6:30 a.m. - 4:00 p.m. / Intermedio: 2:00 p.m. - 11:30 p.m. / Noche: 10:30 p.m. - 7:00 a.m.", "2 Días de descanso a la semana"], 
+        infoExtra: "¡Sé parte de nuestro exclusivo VIP Lounge en AeroComercializadora! ✈️✨\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales + PROPINAS DIARIAS 💵\n\n✨ PRESTACIONES Y BENEFICIOS:\n• Prestaciones de Ley 📜\n• Propinas diarias 💵✨\n• 2 Días de descanso a la semana 🗓️\n• Comedor subsidiado 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: AeroComercializadora" 
+      },
+      { 
+        id: "4", 
+        puesto: "OPERADOR MULTIMODAL DE ESTACIONAMIENTO", 
+        disponible: true, 
+        requisitos: ["Atención a usuarios en estacionamiento", "Disponibilidad para rolar turnos"], 
+        horario: ["Turnos de 12 x 36 hrs (Rotativo diurno y nocturno)", "Trabajas 1 día sí, un día no"], 
+        infoExtra: "¡Forma parte del equipo de Operaciones de Puerta Cero Parking en el Aeropuerto! ✈️🚘\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales\n\n✨ PRESTACIONES Y BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Bono nocturno 🌙\n• Comedor subsidiado 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: Puerta Cero Parking" 
+      },
+      { 
+        id: "5", 
+        puesto: "CHOFER SHUTTLE ESTACIONAMIENTO", 
+        disponible: true, 
+        requisitos: ["Licencia de conducir vigente", "Experiencia conduciendo unidades de traslado o pasajeros"], 
+        horario: ["Turnos de 12 x 36 hrs (Rotativo diurno y nocturno)", "Trabajas 1 día sí, un día no"], 
+        infoExtra: "¡Estamos contratando Chofer de Shuttle en Puerta Cero Parking! ✈️🚐\n\n💰 SUELDO BASE: $14,310.00 M.N. mensuales\n\n✨ PRESTACIONES Y BENEFICIOS:\n• Prestaciones de Ley 📜\n• Vales de despensa 🛒\n• Servicio de comedor 🍽️\n• Estacionamiento de la empresa 🚗\n• Seguro de Gastos Médicos Mayores y Seguro de Vida 🏥\n\n📍 Lugar de trabajo: Aeropuerto Internacional de Tijuana\n🏢 Empresa: Puerta Cero Parking" 
+      }
+    ];
+
+    let vacantes = JSON.parse(localStorage.getItem("vacantes_aeropuerto_tia")) || vacantesBase;
+
+    function guardarEnMemoria() {
+      localStorage.setItem("vacantes_aeropuerto_tia", JSON.stringify(vacantes));
+    }
+
+    function renderizar() {
+      const container = document.getElementById("vacantesContainer");
+      container.innerHTML = "";
+      
+      vacantes.forEach(item => {
+        if (!item.disponible && !esAdmin) return;
+        const linkWA = `https://wa.me/${MI_WHATSAPP}?text=` + encodeURIComponent(`Hola, me interesa la vacante de ${item.puesto}`);
+        const card = document.createElement("div");
+        card.className = `bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 ${!item.disponible ? 'opacity-50 bg-red-50/20' : ''}`;
+        card.innerHTML = `
+          <div class="flex flex-col space-y-4">
+            <div class="flex justify-between items-start">
+              <div>
+                <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">Aeropuerto Tijuana</span>
+                <h2 class="text-xl sm:text-2xl font-black text-slate-900 mt-1">${item.puesto}</h2>
+              </div>
+              <span class="${item.disponible ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'} text-[10px] font-black px-3 py-1 rounded-full uppercase">${item.disponible ? 'Disponible' : 'Ocupada'}</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700 bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <h3 class="font-extrabold text-slate-400 uppercase tracking-wider mb-1">Requisitos</h3>
+                <ul class="space-y-1">${item.requisitos.map(r => `<li>• ${r}</li>`).join('')}</ul>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-slate-400 uppercase tracking-wider mb-1">Horario</h3>
+                <ul class="space-y-1">${item.horario.map(h => `<li>• ${h}</li>`).join('')}</ul>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2.5 pt-2">
+              <button onclick="verDetalle('${item.id}')" class="w-full sm:w-1/2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs">📄 Ver información completa</button>
+              <a href="${linkWA}" target="_blank" class="w-full sm:w-1/2 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs text-center shadow">💬 Contactar por WhatsApp</a>
+            </div>
+            
+            ${esAdmin ? `
+              <div class="pt-3 border-t border-slate-200 flex gap-2">
+                <button onclick="editar('${item.id}')" class="w-1/3 py-1.5 bg-blue-100 text-blue-800 text-xs font-bold rounded-lg">✏️ Editar</button>
+                <button onclick="cambiarEstatus('${item.id}')" class="w-1/3 py-1.5 ${item.disponible ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'} text-xs font-bold rounded-lg">${item.disponible ? 'Marcar Ocupada' : 'Marcar Disponible'}</button>
+                <button onclick="eliminar('${item.id}')" class="w-1/3 py-1.5 bg-red-100 text-red-700 text-xs font-bold rounded-lg">🗑️ Eliminar</button>
+              </div>
+            ` : ''}
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function verDetalle(id) {
+      const v = vacantes.find(item => item.id === id);
+      if (!v) return;
+      document.getElementById("detalleTitulo").innerText = `Detalles: ${v.puesto}`;
+      document.getElementById("detalleCuerpo").innerHTML = `<p class="whitespace-pre-line">${v.infoExtra}</p>`;
+      document.getElementById("btnWADetalle").href = `https://wa.me/${MI_WHATSAPP}?text=` + encodeURIComponent(`Hola, me interesa la vacante de ${v.puesto}`);
+      document.getElementById("modalDetalle").classList.remove("hidden");
+    }
+    function cerrarModalDetalle() { document.getElementById("modalDetalle").classList.add("hidden"); }
+
+    function solicitarAccesoAdmin() { document.getElementById("modalPin").classList.remove("hidden"); }
+    function cerrarPin() { document.getElementById("modalPin").classList.add("hidden"); document.getElementById("inputPin").value = ""; }
+    function validarPin() {
+      if (document.getElementById("inputPin").value === PIN_SECRET) {
+        esAdmin = true; cerrarPin(); document.getElementById("panelAdminBar").classList.remove("hidden"); renderizar();
+      } else { alert("PIN incorrecto"); }
+    }
+    function cerrarAdmin() { esAdmin = false; document.getElementById("panelAdminBar").classList.add("hidden"); renderizar(); }
+
+    function cambiarEstatus(id) {
+      const v = vacantes.find(i => i.id === id);
+      if(v) { v.disponible = !v.disponible; guardarEnMemoria(); renderizar(); }
+    }
+
+    function eliminar(id) {
+      if(confirm("¿Eliminar vacante?")) { vacantes = vacantes.filter(v => v.id !== id); guardarEnMemoria(); renderizar(); }
+    }
+
+    function restaurarOriginales() {
+      if(confirm("¿Restaurar las 5 vacantes iniciales de fábrica?")) {
+        vacantes = [...vacantesBase];
+        guardarEnMemoria();
+        renderizar();
+      }
+    }
+
+    function abrirModalFormulario() { 
+      document.getElementById("inputPuesto").value = ""; 
+      document.getElementById("inputRequisitos").value = ""; 
+      document.getElementById("inputHorario").value = ""; 
+      document.getElementById("inputInfoExtra").value = ""; 
+      document.getElementById("vacanteId").value = ""; 
+      document.getElementById("modalFormulario").classList.remove("hidden"); 
+    }
+    function cerrarModalFormulario() { document.getElementById("modalFormulario").classList.add("hidden"); }
+
+    function editar(id) {
+      const v = vacantes.find(item => item.id === id);
+      if(!v) return;
+      document.getElementById("vacanteId").value = v.id;
+      document.getElementById("inputPuesto").value = v.puesto;
+      document.getElementById("inputRequisitos").value = v.requisitos.join('\n');
+      document.getElementById("inputHorario").value = v.horario.join('\n');
+      document.getElementById("inputInfoExtra").value = v.infoExtra;
+      document.getElementById("modalFormulario").classList.remove("hidden");
+    }
+
+    function guardarVacanteDirecto() {
+      const puesto = document.getElementById("inputPuesto").value.trim();
+      if (!puesto) {
+        alert("Por favor escribe el nombre del puesto.");
+        return;
+      }
+
+      const id = document.getElementById("vacanteId").value || Date.now().toString();
+      const requisitos = document.getElementById("inputRequisitos").value.split('\n').filter(r => r.trim());
+      const horario = document.getElementById("inputHorario").value.split('\n').filter(h => h.trim());
+      const infoExtra = document.getElementById("inputInfoExtra").value;
+
+      const idx = vacantes.findIndex(v => v.id === id);
+
+      const obj = { 
+        id, 
+        puesto, 
+        disponible: idx >= 0 ? vacantes[idx].disponible : true, 
+        requisitos, 
+        horario, 
+        infoExtra 
+      };
+      
+      if (idx >= 0) vacantes[idx] = obj;
+      else vacantes.push(obj);
+      
+      guardarEnMemoria();
+      cerrarModalFormulario();
+      renderizar();
+    }
+
+    function descargarActualizacion() {
+      const htmlContent = `<!DOCTYPE html>\n<html lang="es">\n<head>\n  <meta charset="UTF-8">\n  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n  <title>Bolsa de Trabajo - Aeropuerto Internacional de Tijuana</title>\n  <script src="https://cdn.tailwindcss.com"><\/script>\n  <style>\n    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');\n    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; }\n  </style>\n</head>\n<body class="pb-28 text-slate-800">\n  <script>\n    localStorage.setItem("vacantes_aeropuerto_tia", JSON.stringify(${JSON.stringify(vacantes)}));\n    window.location.href = window.location.pathname;\n  <\/script>\n</body>\n</html>`;
+      
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      a.click();
+      alert("¡Archivo index.html descargado con éxito! Súbelo a tu repositorio de GitHub.");
+    }
+
+    renderizar();
+  </script>
+</body>
+</html>
